@@ -258,7 +258,12 @@ def find_input(device):
         raise NameError('Devices must be identified by at least one ' +
                         'of "input_name", "input_phys", or "input_fn"')
 
-    devices = [InputDevice(fn) for fn in evdev.list_devices()]
+    devices = []
+    for dn in evdev.list_devices():
+        try:
+            devices.append(InputDevice(dn))
+        except UnicodeDecodeError:
+            pass
     for input in devices:
         if name is not None and input.name != name:
             continue
@@ -355,6 +360,7 @@ def run_loop(args):
 
     config = load_config(args.config_file)
     tasks: Iterable[asyncio.Task] = []
+
     for device in config['devices']:
         task = register_device(device, loop)
         if task:
